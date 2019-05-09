@@ -71,3 +71,6 @@ def recommend(username, users):
     # using the fn sorted for variety - sort is more efficient
     return sorted(recommendations, key=lambda artistTuple: artistTuple[1], reverse = True)
 
+for i in music.keys():
+    print(i,":")
+    print(computeNearestNeighbor(i, music), '\n')
