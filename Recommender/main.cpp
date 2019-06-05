@@ -10,8 +10,6 @@ extern double reduceSumWrapper(double *, int);
 #define ST_CAPACITY 25
 #define ST_FOCI 10
 
-typedef vector<double> movie;
-
 using namespace std;
 
 template <class T>
@@ -56,11 +54,15 @@ class MovieRecommender
 {
 	CSVReader * R;
 	SlimTree<movieID> * ST;
+	double rangeGrowthFactor;
+	double initialRadius;
 public:
-	MovieRecommender(CSVReader * db)
+	MovieRecommender(CSVReader * db, double rgf = 1.5, double r = 20.0)
 	{
 		R = db;
 		ST = new SlimTree<movieID>(ST_CAPACITY, MovieDist);
+		rangeGrowthFactor = rgf;
+		initialRadius = r;
 	}
 
 	movieID GetMovieID(int ID)
@@ -77,7 +79,6 @@ public:
 		{
 			checkpoints[i] = cp_size*(i+1); 
 		}
-		printVector(checkpoints);
 		int cp = 0;
 		for (int i = 0; i < R->data->size(); i++)
 		{
@@ -96,7 +97,7 @@ public:
 	}
 	void Query(int ID)
 	{
-		double radius = 20.0;
+		double radius = 50.0;
 		cout << "Movie ID: " << GetMovieID(ID) << endl;
 
 		clock_t t = clock();
@@ -109,32 +110,28 @@ public:
 		cout << "Results (radius of " << radius << ")" << endl;
 		printVector(q);
 	}
+	void KNNQuery(int ID, int k)
+	{
+		double radius = initialRadius;
+		vector<movieID> q = ST->RangeQuery(ID, radius);
+
+		while (q.size() < k)
+		{
+			radius *= rangeGrowthFactor;
+			q = ST->RangeQuery(ID, radius);
+		}
+
+		cout << "Results (" << k << " nearest neighbors):" << endl;
+		for (int i = 0; i < k; i++)
+		{
+			cout << q[i] << " ";
+		}
+		cout << endl;
+	}
 };
 
 int main()
 {
-	/*SlimTree<int> * ST = new SlimTree<int>(5, dist);
-	int a = 10;
-	ST->AddElement(a);
-	vector<int> Q = ST->RangeQuery(9, 2);
-	srand(time(NULL));
-	vector<double> A = genVector(1000);
-	vector<double> B = genVector(1000);
-
-	int test = 100;
-	double diff;
-
-	clock_t t = clock();
-	for (int i=0; i < test; i++)
-	{
-		diff = ManhattanDist(A,B);
-	}
-	t = clock() - t;
-	t = t / test;
-
-	cout << diff << endl;
-	cout << "Tiempo promedio: " << ((float)t)/CLOCKS_PER_SEC << endl;*/
-
 	clock_t t = clock();
 	database = new CSVReader("movie_database.csv", ",");
 	database->getData();
@@ -148,7 +145,11 @@ int main()
 	t = clock() - t;
 	cout << "SlimTree loaded in " << ((float)t)/CLOCKS_PER_SEC << " seconds." << endl;
 
-	MR.Query(100);
+	int k = 5;
+	t = clock();
+	MR.KNNQuery(50, k);
+	t = clock() - t;
+	cout << "KNN-Query ("<< k << " neighbors) made in " << ((float)t)/CLOCKS_PER_SEC << " seconds." << endl;
 
 	return 0;
 }
