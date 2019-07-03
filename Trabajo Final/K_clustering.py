@@ -25,6 +25,9 @@ class K_Cluster:
 			for j in range(self.k):
 				distances[j] = self.EuclideanDist(data[i], self.centroids[j])
 			self.groups[i] = distances.argmin()
+		for i in range(self.k):
+			if i not in self.groups:
+				self.groups[np.random.randint(0, len(data))] = i
 
 	def Update(self, data):
 		for i in range(self.k):

@@ -3,9 +3,9 @@ import numpy as np
 import sys
 from K_clustering import *
 
-orig_stdout = sys.stdout
-f = open('out.txt', 'w')
-sys.stdout = f
+#orig_stdout = sys.stdout
+#f = open('out.txt', 'w')
+#sys.stdout = f
 
 def f1(x):
 	return sum(pow(x, 2))
@@ -88,6 +88,9 @@ class COA:
 		self.cuckoos[self.cuckoos > self.var_high] = self.var_high
 		self.cuckoos_profit = self.CalcProfit(self.cuckoos)
 
+	def GetBest(self):
+		return self.cuckoos[self.cuckoos_profit.argmax()]
+
 	def PrintCuckoos(self, cuckoos, profit):
 		for i in range(len(cuckoos)):
 			print (cuckoos[i], '----------', profit[i])
@@ -126,11 +129,13 @@ class COA:
 
 		print("Final Cuckoos:")
 		self.PrintCuckoos(self.cuckoos, self.cuckoos_profit)
+		print("Best Cuckoo:")
+		self.PrintCuckoos([self.GetBest()], self.CalcProfit([self.GetBest()]))
 
 		print("************************************************************************")
 
-C = COA(f1, 2, -10, 10, generations=100)
-C.Run()
+#C = COA(f1, 2, -10, 10, generations=100)
+#C.Run()
 
-sys.stdout = orig_stdout
-f.close()
+#sys.stdout = orig_stdout
+#f.close()
